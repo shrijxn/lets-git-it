@@ -53,8 +53,27 @@ class gitRepository (object):
 
 
    def __init__(self,path, force=False):
-       self.worktree = path
-       
+        self.worktree = path
+        self.gitdir = os.path.join(path,".git")
+
+        #checks if the .git directory exists unless you specifically tell it not to (by setting force to True)
+        #if its not a repository or force is false (not(false or false) = true) it raises an exception
+        if not (force or os.path.isdir(self.gitdir)):
+            raise Exception("Not a Git repository %s" % path)
+        
+        # Read configuration file in .git/config
+        self.conf = configparser.ConfigParser()
+        cf = repo_file(self, "config")
+
+        if cf and os.path.exists(cf):
+            self.conf.read([cf])
+        elif not force:
+            raise Exception("Configuration file missing")
+
+        if not force:
+            vers = int(self.conf.get("core", "repositoryformatversion"))
+            if vers != 0:
+                raise Exception("Unsupported repositoryformatversion %s" % vers)
 
 
 
